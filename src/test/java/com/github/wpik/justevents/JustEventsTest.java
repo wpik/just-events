@@ -41,6 +41,18 @@ public class JustEventsTest {
         assertEquals(EVENT_OBJECT, event);
     }
 
+    @Test
+    public void nameDeserializationTest() {
+        String name = justEvents.deserializeEventName(EVENT_JSON);
+        assertEquals("some.event", name);
+    }
+
+    @Test
+    public void invalidEventNameDeserializationTest() {
+        String name = justEvents.deserializeEventName(INVALID_EVENT_JSON);
+        assertEquals("some.event", name);
+    }
+
     @Test(expected = ConstraintViolationException.class)
     public void invalidEventSerializationTest() {
         String json = justEvents.serialize(INVALID_EVENT_OBJECT);

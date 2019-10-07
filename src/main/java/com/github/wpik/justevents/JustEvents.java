@@ -21,15 +21,24 @@ public class JustEvents {
     private static final TypeReference<Event<?>> EVENT_TYPE_REFERENCE = new TypeReference<Event<?>>() {
     };
 
-    private ObjectMapper objectMapper = createObjectMapper();
+    private ObjectMapper eventObjectMapper = createEventObjectMapper();
+    private ObjectMapper metadataObjectMapper = createMetadataObjectMapper();
+
     private Validator validator = createValidator();
 
-    private ObjectMapper createObjectMapper() {
+    private ObjectMapper createEventObjectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, true);
         objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         objectMapper.setDateFormat(SimpleDateFormat.getDateTimeInstance());
+        return objectMapper;
+    }
+
+    public static ObjectMapper createMetadataObjectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, true);
         return objectMapper;
     }
 
@@ -40,15 +49,23 @@ public class JustEvents {
     public String serialize(Event<?> event) {
         try {
             validate(event);
-            return objectMapper.writeValueAsString(event);
+            return eventObjectMapper.writeValueAsString(event);
         } catch (JsonProcessingException e) {
             throw new JustEventSerializationException(e);
         }
     }
 
+    public String deserializeEventName(String json) {
+        try {
+            return metadataObjectMapper.readValue(json, Metadata.class).getName();
+        } catch (IOException e) {
+            throw new JustEventDeserializationException(e);
+        }
+    }
+
     public <P extends Payload> Event<P> deserialize(String json) {
         try {
-            Event<P> event = objectMapper.readValue(json, EVENT_TYPE_REFERENCE);
+            Event<P> event = eventObjectMapper.readValue(json, EVENT_TYPE_REFERENCE);
             validate(event);
             return event;
         } catch (IOException e) {
