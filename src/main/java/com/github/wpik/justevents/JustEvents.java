@@ -9,14 +9,20 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.wpik.justevents.exception.JustEventDeserializationException;
 import com.github.wpik.justevents.exception.JustEventSerializationException;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validation;
+import javax.validation.Validator;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Set;
 
 public class JustEvents {
     private static final TypeReference<Event<?>> EVENT_TYPE_REFERENCE = new TypeReference<Event<?>>() {
     };
 
     private ObjectMapper objectMapper = createObjectMapper();
+    private Validator validator = createValidator();
 
     private ObjectMapper createObjectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -27,8 +33,13 @@ public class JustEvents {
         return objectMapper;
     }
 
+    private static Validator createValidator() {
+        return Validation.byDefaultProvider().configure().buildValidatorFactory().getValidator();
+    }
+
     public String serialize(Event<?> event) {
         try {
+            validate(event);
             return objectMapper.writeValueAsString(event);
         } catch (JsonProcessingException e) {
             throw new JustEventSerializationException(e);
@@ -37,9 +48,18 @@ public class JustEvents {
 
     public <P extends Payload> Event<P> deserialize(String json) {
         try {
-            return objectMapper.readValue(json, EVENT_TYPE_REFERENCE);
+            Event<P> event = objectMapper.readValue(json, EVENT_TYPE_REFERENCE);
+            validate(event);
+            return event;
         } catch (IOException e) {
             throw new JustEventDeserializationException(e);
+        }
+    }
+
+    private <T> void validate(T event) {
+        Set<ConstraintViolation<T>> violations = validator.validate(event);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
         }
     }
 }
