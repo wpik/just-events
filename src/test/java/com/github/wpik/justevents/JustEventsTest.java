@@ -1,5 +1,6 @@
 package com.github.wpik.justevents;
 
+import com.github.wpik.justevents.exception.JustEventDeserializationException;
 import org.junit.Test;
 
 import javax.validation.ConstraintViolationException;
@@ -37,6 +38,13 @@ public class JustEventsTest {
 
     @Test
     public void deserializationTest() {
+        justEvents.registerEvent("some.event", SomePayload.class);
+        Event<?> event = justEvents.deserialize(EVENT_JSON);
+        assertEquals(EVENT_OBJECT, event);
+    }
+
+    @Test(expected = JustEventDeserializationException.class)
+    public void deserializationWithoutRegisteredEventFailsTest() {
         Event<?> event = justEvents.deserialize(EVENT_JSON);
         assertEquals(EVENT_OBJECT, event);
     }
@@ -61,6 +69,7 @@ public class JustEventsTest {
 
     @Test(expected = ConstraintViolationException.class)
     public void invalidEventDeserializationTest() {
+        justEvents.registerEvent("some.event", SomePayload.class);
         Event<?> event = justEvents.deserialize(INVALID_EVENT_JSON);
         assertEquals(EVENT_OBJECT, event);
     }

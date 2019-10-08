@@ -1,7 +1,6 @@
 package com.github.wpik.justevents;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Builder;
 import lombok.Data;
@@ -33,9 +32,6 @@ public class Event<P extends Payload> {
 
     @Valid
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, visible = true, property = "name")
-    @JsonSubTypes({
-            @JsonSubTypes.Type(value = SomePayload.class, name = "some.event")
-    })
     private P payload;
 }
 

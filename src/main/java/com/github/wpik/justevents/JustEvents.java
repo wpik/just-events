@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.wpik.justevents.exception.JustEventDeserializationException;
 import com.github.wpik.justevents.exception.JustEventSerializationException;
@@ -35,7 +36,7 @@ public class JustEvents {
         return objectMapper;
     }
 
-    public static ObjectMapper createMetadataObjectMapper() {
+    private static ObjectMapper createMetadataObjectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, true);
@@ -44,6 +45,10 @@ public class JustEvents {
 
     private static Validator createValidator() {
         return Validation.byDefaultProvider().configure().buildValidatorFactory().getValidator();
+    }
+
+    public <P extends Payload> void registerEvent(String eventName, Class<P> payloadClass) {
+        this.eventObjectMapper.registerSubtypes(new NamedType(payloadClass, eventName));
     }
 
     public String serialize(Event<?> event) {
