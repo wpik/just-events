@@ -34,4 +34,3 @@ public class Event<P extends Payload> {
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, visible = true, property = "name")
     private P payload;
 }
-
