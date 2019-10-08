@@ -9,30 +9,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.validation.ConstraintViolationException;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class JustEventsTest {
-    private final static String EVENT_JSON = "{\"id\":\"686f4edd-e8d6-4f23-a053-046b2ddf60ed\",\"timestamp\":\"2019-01-01T12:00:00Z\",\"name\":\"some.event\",\"payload\":{\"foo\":\"bar\"}}";
-    private final static Event<?> EVENT_OBJECT = Event.builder()
-            .id("686f4edd-e8d6-4f23-a053-046b2ddf60ed")
-            .timestamp(OffsetDateTime.parse("2019-01-01T12:00:00Z", DateTimeFormatter.ISO_OFFSET_DATE_TIME))
-            .payload(SomePayload.builder()
-                    .foo("bar")
-                    .build())
-            .build();
-    private final static String INVALID_EVENT_JSON = "{\"id\":\"686f4edd-e8d6-4f23-a053-046b2ddf60ed\",\"timestamp\":\"2019-01-01T12:00:00Z\",\"name\":\"some.event\",\"payload\":{\"foo\":\"\"}}";
-    private final static Event<?> INVALID_EVENT_OBJECT = Event.builder()
-            .id("686f4edd-e8d6-4f23-a053-046b2ddf60ed")
-            .timestamp(OffsetDateTime.parse("2019-01-01T12:00:00Z", DateTimeFormatter.ISO_OFFSET_DATE_TIME))
-            .payload(SomePayload.builder()
-                    .foo("")
-                    .build())
-            .build();
     private JustEvents justEvents;
 
     @Before
@@ -69,8 +50,7 @@ public class JustEventsTest {
     @Test(expected = JustEventDeserializationException.class)
     public void deserializationWithoutRegisteredEventFailsTest() {
         justEvents = new JustEvents();
-        Event<?> event = justEvents.deserialize(EVENT_JSON);
-        assertEquals(EVENT_OBJECT, event);
+        justEvents.deserialize(ValidEvents.SOME_PAYLOAD.getJson());
     }
 
     @Test
@@ -86,7 +66,7 @@ public class JustEventsTest {
         Arrays.stream(InvalidEvents.values()).forEach(e -> {
             try {
                 justEvents.serialize(e.getEvent());
-                assertTrue("serialization should fail for " + InvalidEvents.class.getName() + "." + e.name(), false);
+                fail("serialization should fail for " + InvalidEvents.class.getName() + "." + e.name());
             } catch (ConstraintViolationException ex) {
                 assertTrue(true);
             }
@@ -98,7 +78,7 @@ public class JustEventsTest {
         Arrays.stream(InvalidEvents.values()).forEach(e -> {
             try {
                 justEvents.deserialize(e.getJson());
-                assertTrue("deserialization should fail for " + InvalidEvents.class.getName() + "." + e.name(), false);
+                fail("deserialization should fail for " + InvalidEvents.class.getName() + "." + e.name());
             } catch (Exception ex) {
                 assertEquals("expected exception should be caught for " + InvalidEvents.class.getName() + "." + e.name(),
                         e.getDeserializationExpectedException(), ex.getClass());
