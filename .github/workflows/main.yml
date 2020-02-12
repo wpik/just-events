@@ -1,0 +1,14 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Build maven app
+        uses: LucaFeger/action-maven-cli@master
+        with:
+          args: clean install
